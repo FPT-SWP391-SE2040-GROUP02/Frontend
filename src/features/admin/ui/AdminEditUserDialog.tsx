@@ -28,8 +28,6 @@ const editProfileSchema = z.object({
     .trim()
     .max(32)
     .refine((text) => text === "" || isVietnamesePhone(text), VIETNAM_PHONE_MESSAGE),
-  practiceCertificateNumber: z.string().trim().max(64, "Tối đa 64 ký tự."),
-  lawyerCardNumber: z.string().trim().max(64, "Tối đa 64 ký tự."),
 });
 type EditProfileInput = z.infer<typeof editProfileSchema>;
 
@@ -41,9 +39,9 @@ interface AdminEditUserDialogProps {
 }
 
 /**
- * Hộp thoại Admin sửa thông tin của một tài khoản nhân sự (Người xét duyệt, Người thực thi hệ thống, Quản trị viên):
- * họ tên, số điện thoại, số chứng chỉ hành nghề và số thẻ luật sư. Hai số sau chỉ hiện với Người xét duyệt và Người thực
- * thi. Chủ tài sản không thuộc phạm vi này. Để trống ô tùy chọn thì xóa giá trị cũ.
+ * Hộp thoại Admin sửa thông tin của tài khoản Người xét duyệt hoặc Người thực thi hệ thống: chỉ họ tên và số điện thoại.
+ * Số chứng chỉ, số thẻ luật sư chỉ nhập lúc tạo tài khoản. Chủ tài sản và Quản trị viên không thuộc phạm vi này. Để trống
+ * số điện thoại thì xóa số cũ.
  */
 export function AdminEditUserDialog({ open, user, onClose, onDone }: AdminEditUserDialogProps) {
   const { execute, pending, error } = useAdminAction();
@@ -52,12 +50,9 @@ export function AdminEditUserDialog({ open, user, onClose, onDone }: AdminEditUs
     defaultValues: {
       fullName: user.fullName,
       phone: user.phone ?? "",
-      practiceCertificateNumber: user.practiceCertificateNumber ?? "",
-      lawyerCardNumber: user.lawyerCardNumber ?? "",
     },
   });
   const errors = form.formState.errors;
-  const showCertificates = user.role === "VERIFIER" || user.role === "EXECUTOR";
 
   const onSubmit = (values: EditProfileInput) => {
     void execute(
@@ -75,7 +70,7 @@ export function AdminEditUserDialog({ open, user, onClose, onDone }: AdminEditUs
         <DialogHeader>
           <DialogTitle>Sửa thông tin tài khoản</DialogTitle>
           <DialogDescription>
-            {user.email}. Email và vai trò không đổi ở đây. Ô tùy chọn để trống thì xóa giá trị cũ.
+            {user.email}. Email và vai trò không đổi ở đây. Để trống số điện thoại thì xóa số cũ.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,53 +124,6 @@ export function AdminEditUserDialog({ open, user, onClose, onDone }: AdminEditUs
               </p>
             )}
           </div>
-
-          {showCertificates && (
-            <>
-              <div>
-                <label
-                  htmlFor="edit-user-certificate"
-                  className="block text-sm font-medium text-heritage-text"
-                >
-                  Số chứng chỉ hành nghề{" "}
-                  <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
-                </label>
-                <Input
-                  id="edit-user-certificate"
-                  autoComplete="off"
-                  {...form.register("practiceCertificateNumber")}
-                  aria-invalid={Boolean(errors.practiceCertificateNumber)}
-                  className="mt-1"
-                />
-                {errors.practiceCertificateNumber && (
-                  <p role="alert" className="mt-1 text-sm text-destructive">
-                    {errors.practiceCertificateNumber.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label
-                  htmlFor="edit-user-lawyer-card"
-                  className="block text-sm font-medium text-heritage-text"
-                >
-                  Số thẻ luật sư{" "}
-                  <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
-                </label>
-                <Input
-                  id="edit-user-lawyer-card"
-                  autoComplete="off"
-                  {...form.register("lawyerCardNumber")}
-                  aria-invalid={Boolean(errors.lawyerCardNumber)}
-                  className="mt-1"
-                />
-                {errors.lawyerCardNumber && (
-                  <p role="alert" className="mt-1 text-sm text-destructive">
-                    {errors.lawyerCardNumber.message}
-                  </p>
-                )}
-              </div>
-            </>
-          )}
 
           {error && (
             <p role="alert" className="text-sm text-destructive">

@@ -73,8 +73,8 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
   const isExecutor = user.role === "EXECUTOR";
   // Chỉ Người xét duyệt (luật sư) có ảnh thẻ; Người thực thi là nhân viên hệ thống, không có ảnh thẻ.
   const hasCard = isVerifier;
-  // Admin sửa được thông tin tài khoản nhân sự; Chủ tài sản (người dùng thường) không thuộc phạm vi này.
-  const canEditProfile = user.role !== "USER";
+  // Admin chỉ sửa được họ tên và số điện thoại của Người xét duyệt và Người thực thi; Chủ tài sản và Quản trị viên không thuộc phạm vi này.
+  const canEditProfile = isVerifier || isExecutor;
   return (
     <div className="mt-6 space-y-6">
       {back}
