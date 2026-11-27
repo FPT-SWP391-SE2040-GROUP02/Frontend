@@ -6,7 +6,7 @@ export const systemExecutorSchema = z.object({
   fullName: z.string(),
   email: z.string(),
   avatarUrl: z.string().nullable().optional(),
-  phoneMasked: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
   executorRoleTitle: z.string(),
   assignedVaultsCount: z.number().int().nonnegative(),
   isAvailable: z.boolean(),

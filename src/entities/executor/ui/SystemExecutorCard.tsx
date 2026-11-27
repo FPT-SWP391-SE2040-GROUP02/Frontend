@@ -33,8 +33,8 @@ export function SystemExecutorCard({
   }
 
   let contact = executor.email;
-  if (executor.phoneMasked) {
-    contact = `${executor.email} · ${executor.phoneMasked}`;
+  if (executor.phone) {
+    contact = `${executor.email} · ${executor.phone}`;
   }
 
   return (
