@@ -94,17 +94,39 @@ describe("ProfilePhoneField", () => {
     expect(set).not.toHaveBeenCalled();
   });
 
-  it("rejects a number longer than 20 characters", async () => {
+  it.each([
+    ["too short", "09123"],
+    ["too long", "09123456789"],
+    ["letters", "09123abcde"],
+    ["landline prefix", "0212345678"],
+    ["wrong country code", "+85912345678"],
+  ])("rejects a number that is not a Vietnamese mobile number (%s)", async (_label, value) => {
     const set = vi.spyOn(phoneService, "set");
     renderField();
     const user = userEvent.setup();
 
     await user.click(screen.getByRole("button", { name: "Thêm số" }));
-    await user.type(screen.getByLabelText("Số điện thoại"), "1".repeat(21));
+    await user.type(screen.getByLabelText("Số điện thoại"), value);
     await user.click(screen.getByRole("button", { name: "Lưu số điện thoại" }));
 
-    expect(await screen.findByText("Số điện thoại tối đa 20 ký tự.")).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "Số điện thoại không đúng định dạng (ví dụ 0912345678 hoặc +84912345678).",
+      ),
+    ).toBeInTheDocument();
     expect(set).not.toHaveBeenCalled();
+  });
+
+  it("accepts the +84 form and sends it as typed without separators", async () => {
+    const set = vi.spyOn(phoneService, "set").mockResolvedValue({ ...USER, phone: "+84912345678" });
+    renderField();
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Thêm số" }));
+    await user.type(screen.getByLabelText("Số điện thoại"), "+84 912.345.678");
+    await user.click(screen.getByRole("button", { name: "Lưu số điện thoại" }));
+
+    await waitFor(() => expect(set).toHaveBeenCalledWith("+84912345678"));
   });
 
   it("does not call the backend when the number is unchanged", async () => {
