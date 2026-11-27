@@ -126,6 +126,12 @@ async function closePicker(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Xong" }));
 }
 
+/** Còn tài sản chưa chia thì hộp thoại hỏi lại; chia đủ rồi thì không có hộp nào. */
+async function confirmUndivided(user: ReturnType<typeof userEvent.setup>) {
+  const button = screen.queryByRole("button", { name: "Vẫn chốt" });
+  if (button) await user.click(button);
+}
+
 function setup(children: ReactNode) {
   return render(
     <QueryClientProvider client={client}>
@@ -221,6 +227,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
 
     await confirmLegalBasis(user);
     await user.click(await screen.findByRole("button", { name: "Chốt phương án chia" }));
+    await confirmUndivided(user);
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
       confirmSplitDeviation: false,
@@ -242,6 +249,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
 
     await confirmLegalBasis(user);
     await user.click(await screen.findByRole("button", { name: "Chốt phương án chia" }));
+    await confirmUndivided(user);
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeEnabled();
   });
@@ -311,6 +319,27 @@ describe("Danh sách chia tài sản", () => {
     expect(within(people).getByText("Chưa được chia tài sản nào")).toBeInTheDocument();
   });
 
+  it("bấm Chốt khi còn tài sản chưa chia thì hỏi lại; Quay lại không gửi, Vẫn chốt mới gửi", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(record(), record({ status: "SIGNING", finalizedAt: AT }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    await user.click(screen.getByRole("button", { name: "Chốt phương án chia" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Còn 1 tài sản chưa chia cho ai");
+    expect(dialog).toHaveTextContent("Sổ tiết kiệm");
+    await user.click(within(dialog).getByRole("button", { name: "Quay lại" }));
+    expect(post).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Chốt phương án chia" }));
+    await user.click(await screen.findByRole("button", { name: "Vẫn chốt" }));
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
+      confirmLegalBasis: true,
+      confirmSplitDeviation: false,
+    });
+  });
+
   it("xem bản nháp biên bản bàn giao theo đúng cách đang chọn", async () => {
     const user = userEvent.setup();
     backend(record());
@@ -357,6 +386,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
     await user.click(screen.getByRole("checkbox", { name: DEVIATION_LABEL }));
     expect(finalize).toBeEnabled();
     await user.click(finalize);
+    await confirmUndivided(user);
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
       confirmSplitDeviation: true,
@@ -392,6 +422,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     expect(finalize).toBeEnabled();
 
     await user.click(finalize);
+    await confirmUndivided(user);
     expect(post).toHaveBeenCalledTimes(1);
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
@@ -434,6 +465,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
 
     await confirmLegalBasis(user);
     await user.click(screen.getByRole("button", { name: "Chốt phương án chia" }));
+    await confirmUndivided(user);
     await screen.findByText("Bước 2 · Ký và giao từng người");
 
     await user.click(screen.getByRole("button", { name: "Mở lại phương án chia để sửa" }));
@@ -1002,6 +1034,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
 
     await confirmLegalBasis(user);
     await user.click(screen.getByRole("button", { name: "Chốt phương án chia" }));
+    await confirmUndivided(user);
     expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
     expect(put).toHaveBeenCalledTimes(1);
   });
