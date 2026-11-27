@@ -8,8 +8,8 @@ import { HandoverProgressPanel } from "./HandoverProgressPanel";
 /** Vì sao bàn giao chưa bắt đầu, theo bước của biên bản. */
 function notStartedText(status: string | null): string {
   if (status === "DRAFTING")
-    return "Luật sư đang lập biên bản. Danh sách người nhận hiện ở đây sau khi biên bản được chốt.";
-  return "Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu và luật sư chốt biên bản, tiến độ từng người nhận hiện ở đây.";
+    return "Luật sư đang lập phương án chia. Danh sách người nhận hiện ở đây sau khi phương án được chốt.";
+  return "Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu và luật sư chốt phương án chia, tiến độ từng người nhận hiện ở đây.";
 }
 
 /**

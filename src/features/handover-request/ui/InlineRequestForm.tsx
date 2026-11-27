@@ -20,9 +20,7 @@ export function InlineRequestForm({
   const client = useQueryClient();
   return (
     <RequestForm
-      send={(note, wills, files) =>
-        handoverRequestService.submitByAccount(vaultId, note, wills, files)
-      }
+      send={(note, documents) => handoverRequestService.submitByAccount(vaultId, note, documents)}
       onSent={() => {
         void client.invalidateQueries({ queryKey: handoverRequestKeys.mine });
         void client.invalidateQueries({ queryKey: handoverRequestKeys.available });

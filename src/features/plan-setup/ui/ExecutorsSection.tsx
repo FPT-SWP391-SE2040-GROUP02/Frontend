@@ -487,10 +487,10 @@ function ChosenCard(props: ChosenCardProps) {
     statusText = "Người này cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.";
   } else if (planRunning) {
     statusText =
-      "Hệ thống tự giữ mã nhận. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
+      "Hệ thống tự giữ mã nhận. Người này chỉ xem được sau khi luật sư chốt phương án chia.";
   } else {
     statusText =
-      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
+      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch. Người này chỉ xem được sau khi luật sư chốt phương án chia.";
   }
 
   const forbidden: string[] = ["Đọc nội dung tài sản", "Tự duyệt hồ sơ", "Nhận tài sản này"];
@@ -601,7 +601,7 @@ function ReviewerCard() {
       <h2 className="text-xl font-medium text-heritage-primary">Người xét duyệt</h2>
       <p className="mt-3 text-sm leading-6 text-heritage-muted">
         Hệ thống tự phân công luật sư khi người nhận gửi yêu cầu nhận tài sản, bạn không cần chọn.
-        Luật sư lập biên bản; Người thực thi chỉ giữ hộ và giao theo biên bản.
+        Luật sư lập phương án chia; Người thực thi chỉ giữ hộ và giao theo biên bản.
       </p>
     </section>
   );

@@ -5,7 +5,7 @@ import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 function handoverSteps(grantDays: number): Array<{ title: string; detail: string }> {
   return [
     { title: "Yêu cầu nhận", detail: "Người nhận gửi yêu cầu kèm giấy tờ." },
-    { title: "Lập biên bản", detail: "Luật sư xem yêu cầu, lập và chốt biên bản bàn giao." },
+    { title: "Lập phương án chia", detail: "Luật sư xem yêu cầu, lập và chốt phương án chia." },
     {
       title: "Xác minh và ký",
       detail: "Luật sư kiểm danh tính người nhận; luật sư, Người thực thi và người nhận cùng ký.",

@@ -3,12 +3,17 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Chip, formatDateTime, Notice } from "@/shared/ui/heritageKit";
+import { DeclineConfirmDialog } from "@/shared/ui/DeclineConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { verifierReportService } from "../api/verifierReportService";
 import type { VerifierReport } from "../model/handoverReport.schema";
-import { claimStatusLabel } from "../model/recordPresentation";
+import {
+  claimStatusLabel,
+  REJECT_CONFIRM_MESSAGE,
+  reviewReasonLabel,
+} from "../model/recordPresentation";
 import { handoverRecordKeys, useVerifierReports } from "../model/useHandoverRecord";
-import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
+import { DocumentFiles, SuggestedRecipientList } from "./ReportDetails";
 
 type Decision = "ACCEPT" | "REJECT";
 
@@ -42,6 +47,7 @@ function ReportCard({
   const action = usePrivateAction();
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [confirmingReject, setConfirmingReject] = useState(false);
   const warnings = reportWarnings(report);
   const status = claimStatusLabel[report.status];
   const canReview = report.status === "SUBMITTED" || report.status === "SUPPLEMENT_REQUESTED";
@@ -89,7 +95,7 @@ function ReportCard({
       </p>
       {report.note && <p className="whitespace-pre-line text-sm leading-6">“{report.note}”</p>}
       <SuggestedRecipientList recipients={report.recipients} />
-      <ReportFiles
+      <DocumentFiles
         files={report.files}
         download={(file, options) =>
           verifierReportService.downloadFile(report.id, file.id, options)
@@ -97,7 +103,7 @@ function ReportCard({
       />
       {report.reviewReason && (
         <p className="text-sm">
-          <span className="font-semibold">Lý do đã ghi: </span>
+          <span className="font-semibold">{reviewReasonLabel(report.status)}</span>
           {report.reviewReason}
         </p>
       )}
@@ -128,7 +134,7 @@ function ReportCard({
             </label>
           )}
           <p className="text-sm text-heritage-muted">
-            Chấp nhận thì tài sản bị khóa, Chủ tài sản được báo và biên bản bàn giao được mở.
+            Chấp nhận thì tài sản bị khóa, Chủ tài sản được báo và bước lập phương án chia được mở.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -141,13 +147,13 @@ function ReportCard({
               }
               onClick={() => review("ACCEPT")}
             >
-              Chấp nhận và mở biên bản
+              Chấp nhận và lập phương án
             </button>
             <button
               type="button"
               className={buttonStyles.outline}
               disabled={action.pending || needsReason}
-              onClick={() => review("REJECT")}
+              onClick={() => setConfirmingReject(true)}
             >
               Từ chối
             </button>
@@ -158,6 +164,18 @@ function ReportCard({
         <p role="alert" className="text-sm text-destructive">
           {action.error}
         </p>
+      )}
+      {confirmingReject && (
+        <DeclineConfirmDialog
+          title="Từ chối hồ sơ này?"
+          description={REJECT_CONFIRM_MESSAGE}
+          confirmLabel="Xác nhận từ chối"
+          onClose={() => setConfirmingReject(false)}
+          onConfirm={() => {
+            setConfirmingReject(false);
+            review("REJECT");
+          }}
+        />
       )}
     </article>
   );
@@ -197,7 +215,7 @@ export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: 
   return (
     <SectionCard
       title="Hồ sơ báo tin chờ xét"
-      subtitle="Người thân nộp giấy tờ. Chấp nhận thì tài sản bị khóa và biên bản được mở."
+      subtitle="Người thân nộp giấy tờ. Chấp nhận thì tài sản bị khóa và bước lập phương án chia được mở."
       labelledBy="verifier-reports"
     >
       <div className="relative overflow-x-auto">

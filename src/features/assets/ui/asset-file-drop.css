@@ -1,0 +1,312 @@
+/* Lucian UX/UI Prompt #032 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#032
+   Chỉ style trong .u032; token --ux-* trỏ về biến màu của app (sáng và tối theo biến của app). Khung co theo bề ngang cột. */
+.u032 {
+  --ux-surface: var(--surface);
+  --ux-surface-3: var(--surface-sunken);
+  --ux-ink: var(--text-main);
+  --ux-ink-3: var(--text-muted);
+  --ux-line: var(--border-ui);
+  --ux-line-2: var(--border-strong);
+  --ux-accent: var(--gold);
+  --ux-accent-text: var(--gold-hover);
+  --ux-mint: var(--success);
+  --ux-danger: var(--danger);
+  --ux-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ux-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+.u032-zone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 196px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 26px;
+  background: var(--ux-surface);
+  color: var(--ux-ink);
+  cursor: pointer;
+  transition:
+    transform 0.5s var(--ux-spring),
+    background-color 0.3s var(--ux-ease);
+}
+.u032-zone:focus-visible {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 4px;
+}
+.u032-zone svg.u032-dash {
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+  overflow: visible;
+  pointer-events: none;
+}
+.u032-dash rect {
+  fill: none;
+  stroke: var(--ux-line-2);
+  stroke-width: 2;
+  stroke-dasharray: 8 7;
+  transition: stroke 0.3s var(--ux-ease);
+}
+.u032-zone:hover .u032-dash rect,
+.u032[data-over] .u032-dash rect {
+  stroke: var(--ux-accent);
+  animation: u032-march 0.9s linear infinite;
+}
+@keyframes u032-march {
+  to {
+    stroke-dashoffset: -30;
+  }
+}
+.u032[data-over] .u032-zone {
+  transform: scale(1.03);
+  background: color-mix(in srgb, var(--ux-accent) 7%, var(--ux-surface));
+}
+.u032-orb {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  color: var(--on-primary);
+  background: linear-gradient(140deg, var(--primary-hover), var(--primary));
+  box-shadow: 0 16px 28px -14px color-mix(in srgb, var(--primary) 80%, transparent);
+  transition: transform 0.5s var(--ux-spring);
+}
+.u032-orb svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.u032-zone:hover .u032-orb {
+  transform: translateY(-4px);
+}
+.u032[data-over] .u032-orb {
+  transform: translateY(-8px) scale(1.1) rotate(-6deg);
+}
+.u032-zone b {
+  margin-top: 14px;
+  font-size: 15.5px;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+.u032-zone b em {
+  font-style: normal;
+  color: var(--ux-accent-text);
+}
+.u032-zone small {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--ux-ink-3);
+}
+.u032-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.u032-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.u032-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 8px 8px 11px 12px;
+  border-radius: 18px;
+  background: var(--ux-surface);
+  box-shadow: 0 0 0 1px var(--ux-line);
+  overflow: hidden;
+  animation: u032-in 0.5s var(--ux-spring);
+}
+@keyframes u032-in {
+  from {
+    transform: translateY(-10px) scale(0.96);
+    opacity: 0;
+  }
+}
+.u032-ic {
+  display: grid;
+  place-items: end center;
+  flex: none;
+  width: 36px;
+  height: 40px;
+  padding-bottom: 5px;
+  border-radius: 9px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--c);
+}
+.u032-meta {
+  flex: 1;
+  min-width: 0;
+}
+.u032-meta b {
+  display: block;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 660;
+  color: var(--ux-ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.u032-meta small {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.8125rem;
+  color: var(--ux-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.u032-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--ux-accent);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--p, 0));
+  /* Mẫu gốc 0,2s; tăng lên 0,9s để tệp nhỏ (gửi xong gần như tức thì) vẫn thấy thanh chạy. */
+  transition:
+    transform 0.9s var(--ux-ease),
+    background-color 0.3s,
+    opacity 0.5s 0.4s;
+}
+.u032-row[data-phase="done"] .u032-bar {
+  background: var(--ux-mint);
+  opacity: 0;
+}
+.u032-row[data-phase="fail"] .u032-bar,
+.u032-row[data-phase="invalid"] .u032-bar {
+  background: var(--ux-danger);
+}
+.u032-st {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  margin-right: 4px;
+  border-radius: 50%;
+}
+.u032-st svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.u032-row[data-phase="done"] .u032-st {
+  background: var(--ux-mint);
+  color: var(--ux-surface);
+  animation: u032-pop 0.45s var(--ux-spring);
+}
+@keyframes u032-pop {
+  from {
+    transform: scale(0.3);
+  }
+}
+.u032-row[data-phase="done"] .u032-st path {
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: u032-draw 0.4s var(--ux-ease) 0.15s forwards;
+}
+@keyframes u032-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.u032-row[data-phase="fail"] .u032-meta small,
+.u032-row[data-phase="invalid"] .u032-meta small {
+  color: var(--ux-danger);
+}
+.u032-retry {
+  flex: none;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ux-danger) 12%, transparent);
+  color: var(--ux-danger);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.u032-retry:focus-visible {
+  outline: 2px solid var(--ux-danger);
+  outline-offset: 2px;
+}
+.u032-x {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--ux-ink-3);
+  cursor: pointer;
+}
+.u032-x:hover {
+  background: var(--ux-surface-3);
+  color: var(--ux-ink);
+}
+.u032-x:focus-visible {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 1px;
+}
+.u032-spin {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--ux-surface-3);
+  border-top-color: var(--ux-accent);
+  border-radius: 50%;
+  animation: u032-rot 0.8s linear infinite;
+}
+@keyframes u032-rot {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .u032-zone:hover .u032-orb,
+  .u032[data-over] .u032-orb,
+  .u032[data-over] .u032-zone {
+    transform: none;
+  }
+}
+/* Luật chung của app tắt mọi chuyển động khi giảm chuyển động (trong @layer base, có !important). Vòng chờ vẫn phải quay
+   chậm để biết đang chạy, nên khai trong cùng layer đó. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    .u032 .u032-spin {
+      animation-duration: 2s !important;
+      animation-iteration-count: infinite !important;
+    }
+  }
+}

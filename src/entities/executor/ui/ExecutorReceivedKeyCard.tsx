@@ -28,7 +28,7 @@ export function ExecutorReceivedKeyCard({
     return (
       <Panel title="Mã nhận" action={<Chip tone="neutral">Chờ bàn giao</Chip>}>
         <p className="text-sm leading-6 text-heritage-muted">
-          Bạn sẽ xem được mã sau khi luật sư chốt biên bản bàn giao.
+          Bạn sẽ xem được mã sau khi luật sư chốt phương án chia.
         </p>
       </Panel>
     );

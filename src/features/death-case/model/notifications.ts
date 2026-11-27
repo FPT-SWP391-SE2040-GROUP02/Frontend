@@ -48,7 +48,7 @@ export function deriveNotifications(
       at: null,
       text: "Biên bản bàn giao đang chờ bạn ký.",
       title: "Đến lượt bạn ký biên bản",
-      detail: "Luật sư đã chốt biên bản. Bạn ký được ngay, không cần chờ người nhận.",
+      detail: "Luật sư đã chốt phương án chia. Bạn ký được ngay, không cần chờ người nhận.",
       tone: "attention",
     });
   }
@@ -74,8 +74,8 @@ export function deriveNotifications(
       events.push({
         id: `finalized:${record.id}:${record.revisionNo}`,
         at: record.finalizedAt,
-        text: `Luật sư đã chốt biên bản (bản ${record.revisionNo}).`,
-        title: "Luật sư đã chốt biên bản",
+        text: `Luật sư đã chốt phương án chia (bản ${record.revisionNo}).`,
+        title: "Luật sư đã chốt phương án chia",
         detail: `Bản số ${record.revisionNo}`,
         tone: "info",
       });

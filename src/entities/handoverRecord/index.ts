@@ -8,7 +8,7 @@ export { ReceiveGuide } from "./ui/ReceiveGuide";
 export { handoverRecordService } from "./api/handoverRecordService";
 export { RecordDocument } from "./ui/RecordDocument";
 export { RecordFileList } from "./ui/RecordFileList";
-export { ReportFiles, SuggestedRecipientList } from "./ui/ReportDetails";
+export { DocumentFiles, SuggestedRecipientList } from "./ui/ReportDetails";
 export { PaperPreviewButton } from "./ui/PaperPreviewButton";
 export { RecordStepper } from "./ui/RecordStepper";
 export { VerifierRecordList } from "./ui/VerifierRecordList";

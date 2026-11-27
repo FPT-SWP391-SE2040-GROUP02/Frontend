@@ -8,10 +8,10 @@ export function VerifierQueuePage() {
   const hasRecord = Boolean(params.get("recordId"));
   return (
     <VerifierShell
-      title="Đang lập biên bản"
+      title="Đang lập phương án chia"
       description={
         hasRecord
-          ? "Làm đúng thứ tự: xét giấy tờ và lập biên bản, chốt biên bản rồi ký; kiểm danh tính từng người nhận khi họ nộp căn cước."
+          ? "Làm đúng thứ tự: xét giấy tờ và lập phương án chia, chốt phương án rồi ký biên bản; kiểm danh tính từng người nhận khi họ nộp căn cước."
           : "Hồ sơ báo tin chờ bạn kiểm giấy tờ và các biên bản bàn giao được giao cho bạn."
       }
     >

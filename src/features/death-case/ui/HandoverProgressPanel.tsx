@@ -106,7 +106,7 @@ export function HandoverProgressPanel({
   } else if (!query.data.handoverStarted) {
     body = (
       <p role="status">
-        Bàn giao chưa bắt đầu. Bàn giao chỉ mở sau khi luật sư chốt biên bản bàn giao.
+        Bàn giao chưa bắt đầu. Bàn giao chỉ mở sau khi luật sư chốt phương án chia.
       </p>
     );
   } else if (query.data.turns.length === 0) {

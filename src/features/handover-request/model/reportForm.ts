@@ -1,28 +1,22 @@
 import { z } from "zod";
 import { newRecipientSchema, type SuggestedRecipient } from "@/entities/handoverRecord";
 import { isVietnamesePhone, VIETNAM_PHONE_MESSAGE } from "@/shared/lib/vietnamPhone";
-import { filesError } from "./handoverRequest.schema";
+import { documentErrors, type DocumentErrors, type HandoverDocuments } from "./handoverDocuments";
 
 /** Giống Backend: khai tối đa 20 người nhận. */
 export const MAX_REPORT_RECIPIENTS = 20;
 
-export interface ReportDraft {
+export interface ReportDraft extends HandoverDocuments {
   deceasedFullName: string;
   deceasedCitizenId: string;
   attested: boolean;
   recipients: SuggestedRecipient[];
-  deathCertificates: File[];
-  wills: File[];
-  others: File[];
 }
 
-export interface ReportErrors {
+export interface ReportErrors extends DocumentErrors {
   deceasedFullName?: string;
   deceasedCitizenId?: string;
   attested?: string;
-  deathCertificates?: string;
-  wills?: string;
-  files?: string;
   recipients?: string;
 }
 
@@ -128,16 +122,7 @@ export function reportErrors(draft: ReportDraft): ReportErrors {
   if (!draft.attested) {
     errors.attested = "Vui lòng cam đoan giấy tờ là thật.";
   }
-  if (draft.deathCertificates.length === 0) {
-    errors.deathCertificates = "Vui lòng đính kèm giấy chứng tử.";
-  }
-  if (draft.wills.length === 0) {
-    errors.wills = "Vui lòng đính kèm di chúc.";
-  }
-  if (!errors.deathCertificates && !errors.wills) {
-    const fileError = filesError([...draft.deathCertificates, ...draft.wills, ...draft.others]);
-    if (fileError !== "") errors.files = fileError;
-  }
+  Object.assign(errors, documentErrors(draft));
   // Lỗi chi tiết hiện ngay dưới từng ô; ở đây chỉ báo chung để người dùng biết còn chỗ phải sửa ở mục này.
   for (const rowErrors of recipientRowErrors(draft.recipients)) {
     if (Object.keys(rowErrors).length > 0) {

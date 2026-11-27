@@ -11,11 +11,11 @@ const planLabels: Record<string, { title: string; description: string }> = {
   HANDOVER_REQUESTED: {
     title: "Có yêu cầu nhận tài sản",
     description:
-      "Có người nhận gửi yêu cầu nhận tài sản, tài khoản đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
+      "Có người nhận gửi yêu cầu nhận tài sản, tài khoản đang bị khóa trong lúc luật sư xét giấy tờ và lập phương án chia.",
   },
   HANDOVER_IN_PROGRESS: {
     title: "Kế hoạch đang trong quá trình bàn giao",
-    description: "Luật sư đã chốt biên bản. Người nhận đang xác minh, ký và nhận tài sản.",
+    description: "Luật sư đã chốt phương án chia. Người nhận đang xác minh, ký và nhận tài sản.",
   },
   CLOSED: {
     title: "Kế hoạch đã đóng",

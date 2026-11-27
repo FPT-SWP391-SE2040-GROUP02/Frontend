@@ -9,7 +9,7 @@ export function NotaryWorkspacePage() {
   return (
     <VerifierShell
       title={user?.fullName ? `Chào ${user.fullName}` : "Tổng quan"}
-      description="Bạn lập biên bản bàn giao, kiểm danh tính người nhận và ký xác minh."
+      description="Bạn lập phương án chia tài sản, kiểm danh tính người nhận và ký xác minh biên bản."
     >
       <VerifierOverview />
     </VerifierShell>

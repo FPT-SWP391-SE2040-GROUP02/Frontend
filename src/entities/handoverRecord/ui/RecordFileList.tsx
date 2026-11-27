@@ -10,8 +10,10 @@ import { FilePreviewButton } from "./FilePreviewButton";
 
 /** Nhãn cho biết loại giấy tờ người nhận đã nộp; tệp loại khác (căn cứ của luật sư) không gắn nhãn. */
 const KIND_LABELS: Record<string, { text: string; tone: Tone }> = {
+  DEATH_CERTIFICATE: { text: "Giấy chứng tử", tone: "warning" },
   WILL: { text: "Di chúc", tone: "warning" },
-  CLAIM_DOCUMENT: { text: "Giấy tờ khác", tone: "neutral" },
+  OTHER: { text: "Giấy tờ khác", tone: "neutral" },
+  CLAIM_DOCUMENT: { text: "Giấy tờ", tone: "neutral" },
 };
 
 /**

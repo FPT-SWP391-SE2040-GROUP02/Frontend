@@ -52,7 +52,7 @@ export const FAQ_CONTENT = {
         {
           question: "LegacyVault là gì?",
           answer:
-            "Là két số để bạn cất thông tin và tài sản số quan trọng, rồi trao lại cho người bạn chọn vào đúng lúc. Hệ thống không tự biết khi nào bạn qua đời: người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, đủ chữ ký mới giao tài sản.",
+            "Là két số để bạn cất thông tin và tài sản số quan trọng, rồi trao lại cho người bạn chọn vào đúng lúc. Hệ thống không tự biết khi nào bạn qua đời: người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập phương án chia, đủ chữ ký trên biên bản bàn giao mới giao tài sản.",
         },
         {
           question: "LegacyVault có thay thế di chúc không?",
@@ -92,7 +92,7 @@ export const FAQ_CONTENT = {
         {
           question: "Bàn giao bắt đầu thế nào?",
           answer:
-            "Khi Chủ tài sản qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ tài sản và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì tài sản khóa), lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
+            "Khi Chủ tài sản qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ tài sản và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì tài sản khóa), lập phương án chia (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký biên bản bàn giao. Đủ chữ ký mới giao tài sản.",
         },
         {
           question: "LegacyVault có làm thủ tục thừa kế không?",

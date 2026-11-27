@@ -2,17 +2,23 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check } from "lucide-react";
 import type { CSSProperties } from "react";
-import { claimStatusLabel, RecordFileList } from "@/entities/handoverRecord";
+import { claimStatusLabel, DocumentFiles } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles, Chip, formatDateTime } from "@/shared/ui/heritageKit";
 import { PortalSkeleton } from "@/shared/ui/PortalSkeleton";
 import { handoverRequestService } from "../api/handoverRequestService";
 import { type MyClaim } from "../model/handoverRequest.schema";
-import { handoverRequestKeys, useMyClaims } from "../model/useHandoverRequest";
+import {
+  handoverRequestKeys,
+  useAvailableHandovers,
+  useMyClaims,
+} from "../model/useHandoverRequest";
 import { SupplementForm } from "./SupplementForm";
 
 /** Câu cho người nhận biết yêu cầu đang ở đâu. */
 function claimText(claim: MyClaim): string {
+  // Bị từ chối là kết quả của chính yêu cầu này, kể cả khi biên bản đã tự đóng sau đó.
+  if (claim.status === "REJECTED") return "Luật sư đã từ chối yêu cầu này.";
   if (claim.cancelReason) return `Luật sư đã hủy yêu cầu này. Lý do: ${claim.cancelReason}`;
   if (claim.recordStatus === "CANCELLED") return "Yêu cầu này đã bị hủy.";
   switch (claim.status) {
@@ -21,10 +27,14 @@ function claimText(claim: MyClaim): string {
     case "SUPPLEMENT_REQUESTED":
       return "Luật sư cần thêm giấy tờ. Nộp bổ sung ở dưới.";
     case "ACCEPTED":
-      return "Giấy tờ đã được chấp nhận. Khi luật sư chốt biên bản, bạn sẽ nhận thư mời nộp căn cước rồi ký.";
-    case "REJECTED":
-      return "Luật sư đã từ chối yêu cầu này.";
+      return "Giấy tờ đã được chấp nhận. Khi luật sư chốt phương án chia, bạn sẽ nhận thư mời nộp căn cước rồi ký.";
   }
+}
+
+/** Yêu cầu đang chờ mà còn lý do là lý do của lần xét trước (đã bổ sung hoặc gửi lại). */
+function reasonLabel(claim: MyClaim): string {
+  if (claim.status === "SUBMITTED") return "Lý do xét lần trước: ";
+  return "Lý do của luật sư: ";
 }
 
 /**
@@ -63,6 +73,8 @@ export function ClaimSupplementNotice() {
 export function MyClaimsPanel() {
   const client = useQueryClient();
   const query = useMyClaims();
+  // Backend cho biết yêu cầu bị từ chối nào còn gửi lại được; form gửi nằm ở trang Nhận tài sản.
+  const available = useAvailableHandovers();
   if (query.isPending) return <PortalSkeleton label="Đang tải các yêu cầu…" rows={2} />;
   if (query.isError) {
     return (
@@ -83,8 +95,8 @@ export function MyClaimsPanel() {
           Bạn chưa gửi yêu cầu nhận tài sản nào.
         </p>
         <p className="text-sm text-heritage-muted">
-          Khi Chủ tài sản đã qua đời, bạn gửi yêu cầu kèm di chúc ở trang Nhận tài sản. Luật sư xét
-          xong, kết quả hiện ở đây.
+          Khi Chủ tài sản đã qua đời, bạn gửi yêu cầu kèm giấy chứng tử và di chúc ở trang Nhận tài
+          sản. Luật sư xét xong, kết quả hiện ở đây.
         </p>
         <Link to={ROUTES.DASHBOARD.RECEIVE_ASSETS} className={buttonStyles.outline}>
           Mở trang Nhận tài sản
@@ -96,7 +108,7 @@ export function MyClaimsPanel() {
     <div className="space-y-5">
       {query.data.map((claim, index) => {
         let status = claimStatusLabel[claim.status];
-        if (claim.recordStatus === "CANCELLED")
+        if (claim.recordStatus === "CANCELLED" && claim.status !== "REJECTED")
           status = {
             label: claim.cancelReason ? "Luật sư đã hủy" : "Đã hủy",
             tone: "neutral",
@@ -104,6 +116,9 @@ export function MyClaimsPanel() {
         const supplement =
           claim.status === "SUPPLEMENT_REQUESTED" && claim.recordStatus !== "CANCELLED";
         const accepted = claim.status === "ACCEPTED" && claim.recordStatus !== "CANCELLED";
+        const canResend =
+          claim.status === "REJECTED" &&
+          Boolean(available.data?.some((row) => row.claimId === claim.id && row.canRequest));
         return (
           <article
             key={claim.id}
@@ -149,11 +164,16 @@ export function MyClaimsPanel() {
             {!supplement && !accepted && <p className="text-sm leading-6">{claimText(claim)}</p>}
             {!supplement && claim.reviewReason && (
               <p className="text-sm">
-                <span className="font-semibold">Lý do của luật sư: </span>
+                <span className="font-semibold">{reasonLabel(claim)}</span>
                 {claim.reviewReason}
               </p>
             )}
-            <RecordFileList
+            {canResend && (
+              <Link to={ROUTES.DASHBOARD.RECEIVE_ASSETS} className={buttonStyles.dark}>
+                Gửi lại yêu cầu
+              </Link>
+            )}
+            <DocumentFiles
               files={claim.files}
               download={(file, options) =>
                 handoverRequestService.downloadFile(claim.id, file.id, options)

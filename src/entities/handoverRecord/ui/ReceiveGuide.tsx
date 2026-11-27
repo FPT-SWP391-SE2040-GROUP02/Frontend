@@ -128,7 +128,7 @@ export function ReceiveGuide({
       </ol>
       <p className="mt-1 text-sm leading-6 text-heritage-muted">
         Chưa được khai làm người nhận? Dùng mục Báo tin Chủ tài sản đã mất ở trang Nhận tài sản. Khi
-        luật sư ghi bạn vào biên bản, bạn đi tiếp từ bước 3.
+        luật sư ghi bạn vào phương án chia, bạn đi tiếp từ bước 3.
       </p>
     </details>
   );

@@ -32,7 +32,7 @@ export function SuggestedRecipients({
       {suggestions.length > 0 && (
         <>
           <p className="leading-6 text-heritage-muted">
-            Người nộp tự khai, chưa có trong biên bản. Nhập nốt rồi thêm, hoặc bỏ.
+            Người nộp tự khai, chưa có trong phương án chia. Nhập nốt rồi thêm, hoặc bỏ.
           </p>
           <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-white/70">
             {suggestions.map((suggestion) => (

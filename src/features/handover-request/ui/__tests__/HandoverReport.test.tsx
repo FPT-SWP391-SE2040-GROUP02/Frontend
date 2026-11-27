@@ -266,6 +266,22 @@ describe("Form báo tin: người nhận và cam đoan", () => {
   });
 });
 
+describe("Hồ sơ báo tin bị từ chối", () => {
+  it("hiện lý do và nút Nộp hồ sơ mới mở lại form", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      report({ status: "REJECTED", reviewReason: "Chứng tử không hợp lệ" }),
+    ]);
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+
+    expect(await screen.findByText("Chứng tử không hợp lệ")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ mới" }));
+
+    expect(screen.getByLabelText("Họ tên người mất")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nộp hồ sơ mới" })).toBeDisabled();
+  });
+});
+
 describe("Luật sư xét hồ sơ báo tin", () => {
   it("chấp nhận thì mở biên bản vừa tạo", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([verifierReport()]);
@@ -275,7 +291,9 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     const open = vi.fn();
     setup(<VerifierReportList onOpenRecord={open} />);
     await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
-    await userEvent.click(await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Chấp nhận và lập phương án" }),
+    );
     await waitFor(() => expect(open).toHaveBeenCalledWith(RECORD_ID));
   });
 
@@ -286,7 +304,7 @@ describe("Luật sư xét hồ sơ báo tin", () => {
       .mockResolvedValue(verifierReport({ status: "ACCEPTED", recordId: RECORD_ID }));
     setup(<VerifierReportList onOpenRecord={() => undefined} />);
     await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
-    const accept = await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" });
+    const accept = await screen.findByRole("button", { name: "Chấp nhận và lập phương án" });
     expect(accept).toBeDisabled();
     expect(screen.getByText(/Họ tên khai không khớp/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("checkbox", { name: /Tôi đã đối chiếu/ }));
@@ -306,9 +324,31 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     ]);
     setup(<VerifierReportList onOpenRecord={() => undefined} />);
     await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
-    expect(await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" })).toBeDisabled();
+    expect(
+      await screen.findByRole("button", { name: "Chấp nhận và lập phương án" }),
+    ).toBeDisabled();
     expect(screen.getByRole("button", { name: "Từ chối" })).toBeDisabled();
     await userEvent.type(screen.getByLabelText(/^Lý do/), "Giấy tờ không hợp lệ");
     expect(screen.getByRole("button", { name: "Từ chối" })).toBeEnabled();
+  });
+
+  it("từ chối phải xác nhận rồi mới gửi", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([verifierReport()]);
+    const post = vi
+      .spyOn(apiClient, "post")
+      .mockResolvedValue(verifierReport({ status: "REJECTED", reviewReason: "Chứng tử mờ" }));
+    setup(<VerifierReportList onOpenRecord={() => undefined} />);
+    await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
+    await userEvent.type(await screen.findByLabelText(/^Lý do/), "Chứng tử mờ");
+    await userEvent.click(screen.getByRole("button", { name: "Từ chối" }));
+    expect(
+      screen.getByText("Từ chối sẽ đóng yêu cầu này. Người gửi có thể gửi lại yêu cầu mới."),
+    ).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Xác nhận từ chối" }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0][1]).toMatchObject({ decision: "REJECT", reason: "Chứng tử mờ" });
   });
 });

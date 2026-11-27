@@ -4,7 +4,7 @@ import type { DevEkycReset, DevRewindBeforeEkyc } from "./devTools.schema";
 const PLAN_STATUS_LABELS: Record<string, string> = {
   DRAFT: "Nháp",
   ACTIVE: "Đang hoạt động",
-  HANDOVER_REQUESTED: "Đang lập biên bản",
+  HANDOVER_REQUESTED: "Đang lập phương án chia",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
   CLOSED: "Đã đóng",
 };

@@ -182,7 +182,7 @@ function RunningView({
         <HandoverHeader
           chipText={chipText}
           chipTone="success"
-          subtitle="Biên bản phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
+          subtitle="Biên bản phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập phương án chia."
         />
       </div>
       <PlanSetupPanel

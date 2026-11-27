@@ -20,7 +20,7 @@ const CHIP_BUTTON =
 /** Đánh dấu người do luật sư thêm ở biên bản này (sửa, xóa được). */
 function AddedTag() {
   return (
-    <span className="shrink-0 whitespace-nowrap" title="Do bạn thêm ở biên bản này">
+    <span className="shrink-0 whitespace-nowrap" title="Do bạn thêm ở phương án này">
       <Chip tone="success">Mới</Chip>
     </span>
   );

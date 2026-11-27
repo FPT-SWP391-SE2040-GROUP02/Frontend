@@ -13,7 +13,7 @@ export function OwnerRequestNotice({ vaultId }: { vaultId: string }) {
   const names = request.requesterNames.join(", ") || "Người nhận";
   let stateText: string;
   if (request.vaultLocked) {
-    stateText = "Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập biên bản.";
+    stateText = "Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập phương án chia.";
   } else {
     stateText =
       "Có yêu cầu nhận tài sản đang được luật sư xét. Tài khoản chưa khóa; bạn vẫn sửa được tài sản cho tới khi luật sư chấp nhận giấy tờ.";

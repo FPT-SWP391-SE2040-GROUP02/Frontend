@@ -204,7 +204,7 @@ it("tells a recipient with no turn how to get the invitation, with no support li
 it("shows no support link under a terminal state either", async () => {
   backendReturns([turn("CANCELLED")]);
   setup(<TurnDetail turnId={CONTAINER_ID} />);
-  await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/);
+  await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa phương án chia/);
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 

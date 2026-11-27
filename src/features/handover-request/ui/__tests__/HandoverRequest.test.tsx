@@ -120,6 +120,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(region).not.toHaveAttribute("inert");
 
+    await user.upload(screen.getByLabelText(/^Giấy chứng tử/), pdf("chung-tu.pdf"));
     await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
     await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
@@ -133,13 +134,15 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     expect(form.get("vaultId")).toBe(VAULT_ID);
     expect(form.get("token")).toBeNull();
     expect(form.get("note")).toBe("Bố tôi mất ngày 1/11");
+    expect(form.getAll("deathCertificates")).toHaveLength(1);
+    expect(form.getAll("wills")).toHaveLength(1);
     // Danh sách available đang được xem nên bị tải lại ngay sau khi gửi xong.
     await waitFor(() =>
       expect(get).toHaveBeenCalledWith("/handover/requests/available", expect.anything()),
     );
   });
 
-  it("phải đính kèm di chúc trước khi gửi", async () => {
+  it("phải đính kèm giấy chứng tử và di chúc trước khi gửi", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
     const post = vi.spyOn(apiClient, "post");
@@ -148,7 +151,8 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ }));
     await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
+    expect(screen.getByText("Vui lòng đính kèm giấy chứng tử.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng đính kèm di chúc.")).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -159,6 +163,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     setup(<AvailableHandoverList />, "an@example.com");
 
     await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ }));
+    await user.upload(screen.getByLabelText(/^Giấy chứng tử/), pdf("chung-tu.pdf"));
     await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng cam đoan giấy tờ là thật.");
@@ -177,7 +182,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("yêu cầu trước bị từ chối là đã đóng: vẫn có nút Gửi yêu cầu mới", async () => {
+  it("yêu cầu bị từ chối còn gửi lại được: hiện lý do và nút Gửi lại yêu cầu mở form", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue([
       availableRow({
@@ -185,24 +190,36 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
         needsAction: false,
         canRequest: true,
         claimId: CLAIM_ID,
-        reviewReason: "Thiếu di chúc",
+        reviewReason: "Thiếu bản gốc",
       }),
     ]);
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(claim());
     setup(<AvailableHandoverList />, "an@example.com");
 
-    expect(await screen.findByText(/Yêu cầu trước đã bị từ chối và đã đóng/)).toBeInTheDocument();
-    expect(screen.getByText("Thiếu di chúc")).toBeInTheDocument();
-    const toggle = screen.getByRole("button", {
-      name: "Gửi yêu cầu mới - tài sản của Nguyễn Văn A",
+    const resend = await screen.findByRole("button", {
+      name: "Gửi lại yêu cầu - tài sản của Nguyễn Văn A",
     });
-    await user.click(toggle);
+    expect(screen.getByText("Bị từ chối")).toBeInTheDocument();
+    expect(screen.getByText("Thiếu bản gốc")).toBeInTheDocument();
+    await user.click(resend);
+    expect(resend).toHaveAttribute("aria-expanded", "true");
+    await user.upload(screen.getByLabelText(/^Giấy chứng tử/), pdf("chung-tu.pdf"));
     await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
 
     expect(await screen.findByText("Đã gửi yêu cầu")).toBeInTheDocument();
     expect(post.mock.calls[0][0]).toBe("/handover/requests/by-account");
+  });
+
+  it("yêu cầu bị từ chối mà không gửi lại được thì không có nút gửi", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      availableRow({ status: "REJECTED", needsAction: false, canRequest: false }),
+    ]);
+    setup(<AvailableHandoverList />, "an@example.com");
+
+    expect(await screen.findByText("Yêu cầu đã bị từ chối.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Gửi lại yêu cầu/ })).not.toBeInTheDocument();
   });
 
   it("canRequest false thì không có nút Gửi yêu cầu", async () => {
@@ -250,6 +267,29 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
     await waitFor(() => expect(get).toHaveBeenCalled());
     expect(await screen.findByText("Bạn chưa gửi yêu cầu nhận tài sản nào.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mở trang Nhận tài sản" })).toBeInTheDocument();
+  });
+
+  it("yêu cầu bị từ chối (biên bản đã tự đóng) vẫn ghi bị từ chối và có đường gửi lại", async () => {
+    const rejected = claim({
+      status: "REJECTED",
+      recordStatus: "CANCELLED",
+      cancelReason: "Mọi yêu cầu bị từ chối",
+      reviewReason: "Không đúng người",
+    });
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/handover/requests/available") {
+        return [availableRow({ status: "REJECTED", needsAction: false, claimId: CLAIM_ID })];
+      }
+      return [rejected];
+    });
+    setup(<MyClaimsPanel />, "an@example.com", "/claim/beneficiary");
+
+    const card = await screen.findByRole("article", {
+      name: "Yêu cầu nhận tài sản của Nguyễn Văn A",
+    });
+    expect(card).toHaveTextContent("Luật sư đã từ chối yêu cầu này.");
+    expect(card).toHaveTextContent("Không đúng người");
+    expect(await within(card).findByRole("link", { name: "Gửi lại yêu cầu" })).toBeInTheDocument();
   });
 
   it("luật sư đã hủy thì ghi rõ lý do, không cho nộp bổ sung", async () => {
@@ -317,7 +357,7 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
 
     expect(
       await screen.findByText(
-        /Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./,
+        /Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập phương án chia\./,
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Tài khoản chưa khóa/)).not.toBeInTheDocument();

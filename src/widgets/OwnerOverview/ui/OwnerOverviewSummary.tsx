@@ -36,9 +36,9 @@ export function OwnerOverviewSummary({
             cần bàn giao
           </h3>
           <p>
-            Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Luật sư xét và lập biên bản bàn
-            giao, kiểm danh tính người nhận, rồi ba bên ký. Hệ thống chỉ giao tài sản theo biên bản
-            đó.
+            Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Luật sư xét giấy tờ và lập
+            phương án chia, kiểm danh tính người nhận, rồi ba bên ký biên bản bàn giao. Hệ thống chỉ
+            giao tài sản theo biên bản đó.
           </p>
         </div>
       </section>

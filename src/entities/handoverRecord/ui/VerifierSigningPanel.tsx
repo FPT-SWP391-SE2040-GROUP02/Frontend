@@ -25,7 +25,7 @@ import { SignatureParties } from "./SignatureParties";
 
 /** Lý do không mở lại được biên bản khi đã giao cho ít nhất một người nhận. */
 const PARTIALLY_DELIVERED_TEXT =
-  "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.";
+  "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được phương án chia. Sai sót sau khi giao xử lý ngoài hệ thống.";
 
 function RecipientRow({
   record,
@@ -205,7 +205,7 @@ export function VerifierSigningPanel({ record }: { record: HandoverRecord }) {
       {signing && !delivered && (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <p className="text-heritage-muted">
-            Mở lại biên bản thì mọi chữ ký mất hiệu lực, các bên phải ký lại.
+            Mở lại phương án chia thì mọi chữ ký mất hiệu lực, các bên phải ký lại.
           </p>
           <button
             type="button"
@@ -215,7 +215,7 @@ export function VerifierSigningPanel({ record }: { record: HandoverRecord }) {
               void reopen.execute(() => handoverRecordService.reopen(record.id), apply)
             }
           >
-            {reopen.pending ? "Đang mở lại…" : "Mở lại biên bản để sửa"}
+            {reopen.pending ? "Đang mở lại…" : "Mở lại phương án chia để sửa"}
           </button>
         </div>
       )}

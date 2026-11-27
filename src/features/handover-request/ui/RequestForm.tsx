@@ -5,22 +5,23 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
+import { type HandoverDocuments, EMPTY_DOCUMENTS } from "../model/handoverDocuments";
 import { type MyClaim } from "../model/handoverRequest.schema";
 import { REQUEST_NOTE_MAX_LENGTH, requestErrors, type RequestErrors } from "../model/requestForm";
-import { DocumentPicker } from "./DocumentPicker";
 import { ErrorText } from "./ErrorText";
+import { HandoverDocumentFields } from "./HandoverDocumentFields";
 
 /**
- * Form gửi yêu cầu nằm trong thẻ kho ở trang Nhận tài sản (gửi bằng tài khoản đã đăng nhập). Cùng bố cục, cùng cách báo
- * lỗi và cùng ô cam đoan với form nộp hồ sơ báo tin (ReportForm). Việc gọi API do nơi dùng truyền vào; form lo kiểm
- * tệp, lời nhắn và chống gửi trùng.
+ * Form gửi yêu cầu nằm trong thẻ kho ở trang Nhận tài sản (gửi bằng tài khoản đã đăng nhập). Cùng bố cục, cùng phần giấy
+ * tờ, cùng cách báo lỗi và cùng ô cam đoan với form nộp hồ sơ báo tin (ReportForm). Việc gọi API do nơi dùng truyền vào;
+ * form lo kiểm tệp, lời nhắn và chống gửi trùng.
  */
 export function RequestForm({
   send,
   onSent,
   onCancel,
 }: {
-  send: (note: string, wills: File[], files: File[]) => Promise<MyClaim>;
+  send: (note: string, documents: HandoverDocuments) => Promise<MyClaim>;
   onSent: () => void;
   /** Có thì hiện nút Hủy để thu gọn form, như form nộp hồ sơ. */
   onCancel?: () => void;
@@ -31,12 +32,11 @@ export function RequestForm({
   const sent = useSuccessHold();
   const [attested, setAttested] = useState(false);
   const [note, setNote] = useState("");
-  const [wills, setWills] = useState<File[]>([]);
-  const [others, setOthers] = useState<File[]>([]);
+  const [documents, setDocuments] = useState(EMPTY_DOCUMENTS);
   const [touched, setTouched] = useState(false);
   const busy = submit.pending;
 
-  const draft = { attested, wills, others };
+  const draft = { attested, ...documents };
   let errors: RequestErrors = {};
   if (touched) {
     errors = requestErrors(draft);
@@ -46,7 +46,7 @@ export function RequestForm({
     setTouched(true);
     if (Object.keys(requestErrors(draft)).length > 0) return;
     void submit.execute(
-      () => sent.hold(() => send(note, wills, others)),
+      () => sent.hold(() => send(note, documents)),
       () => onSent(),
     );
   };
@@ -60,32 +60,14 @@ export function RequestForm({
         handleSend();
       }}
     >
-      <fieldset className="space-y-4">
-        <legend className="font-serif text-xl text-heritage-primary">1. Giấy tờ</legend>
-        <p className="leading-6 text-heritage-muted">
-          Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư. Luật sư xét giấy
-          tờ: chấp nhận (lúc này tài sản mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.
-        </p>
-        <DocumentPicker
-          label="Di chúc (bắt buộc)"
-          files={wills}
-          onChange={setWills}
-          disabled={busy}
-          reserved={others.length}
-        />
-        <ErrorText>{errors.wills}</ErrorText>
-        <DocumentPicker
-          label="Giấy tờ khác (nếu có)"
-          files={others}
-          onChange={setOthers}
-          disabled={busy}
-          reserved={wills.length}
-        />
-        <ErrorText>{errors.files}</ErrorText>
-        <p className="text-heritage-muted">
-          Hệ thống chỉ lưu tệp, không kiểm từng ô giấy tờ. Luật sư xác minh ở ngoài hệ thống.
-        </p>
-      </fieldset>
+      <HandoverDocumentFields
+        legend="1. Giấy tờ"
+        intro="Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư. Luật sư xét giấy tờ: chấp nhận (lúc này tài sản mới khóa), yêu cầu bổ sung hoặc từ chối có lý do."
+        documents={documents}
+        errors={errors}
+        disabled={busy}
+        onChange={setDocuments}
+      />
 
       <label className="block space-y-1 font-semibold">
         Lời nhắn cho luật sư (không bắt buộc)

@@ -117,16 +117,17 @@ export function RecipientDialog({
   }
 
   let title = "Thêm người nhận";
-  let description = "Nhập theo di chúc. Bấm Thêm là kiểm tra và lưu ngay vào biên bản đang lập.";
+  let description =
+    "Nhập theo di chúc. Bấm Thêm là kiểm tra và lưu ngay vào phương án chia đang lập.";
   let submitLabel = "Thêm";
   if (state.mode === "edit") {
     title = "Sửa người nhận";
-    description = "Chỉ sửa được người do bạn thêm, trước khi chốt biên bản.";
+    description = "Chỉ sửa được người do bạn thêm, trước khi chốt phương án chia.";
     submitLabel = "Lưu";
   }
   if (state.mode === "remove") {
     title = "Xóa người nhận";
-    description = `Xóa ${state.initial.fullName} khỏi danh sách? Tài sản đã chia cho người này trong biên bản cũng bị gỡ.`;
+    description = `Xóa ${state.initial.fullName} khỏi danh sách? Tài sản đã chia cho người này trong phương án cũng bị gỡ.`;
   }
   const warning = draftWarning(record, draft, editingId);
   const hasFieldError = RECIPIENT_FIELDS.some((field) => action.fieldErrors[field]);

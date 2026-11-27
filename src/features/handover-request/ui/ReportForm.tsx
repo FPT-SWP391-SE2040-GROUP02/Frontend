@@ -12,7 +12,8 @@ import {
   type RecipientFieldErrors,
   type ReportErrors,
 } from "../model/reportForm";
-import { DocumentPicker } from "./DocumentPicker";
+import { EMPTY_DOCUMENTS } from "../model/handoverDocuments";
+import { HandoverDocumentFields } from "./HandoverDocumentFields";
 import { ErrorText } from "./ErrorText";
 import { RecipientRows } from "./RecipientRows";
 
@@ -30,9 +31,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
   const [citizenId, setCitizenId] = useState("");
   const [attested, setAttested] = useState(false);
   const [note, setNote] = useState("");
-  const [deathCertificates, setDeathCertificates] = useState<File[]>([]);
-  const [wills, setWills] = useState<File[]>([]);
-  const [others, setOthers] = useState<File[]>([]);
+  const [documents, setDocuments] = useState(EMPTY_DOCUMENTS);
   // Dòng người nhận do RecipientRows giữ (kèm hoạt ảnh); ở đây chỉ nhận bản dữ liệu để kiểm và gửi.
   const [recipients, setRecipients] = useState<SuggestedRecipient[]>([]);
   const [touched, setTouched] = useState(false);
@@ -43,9 +42,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
     deceasedCitizenId: citizenId,
     attested,
     recipients,
-    deathCertificates,
-    wills,
-    others,
+    ...documents,
   };
   let errors: ReportErrors = {};
   let rowErrors: RecipientFieldErrors[] = [];
@@ -120,33 +117,13 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
         <p className="text-heritage-muted">Ghi đúng như trên giấy chứng tử.</p>
       </fieldset>
 
-      <fieldset className="space-y-4">
-        <legend className="font-serif text-xl text-heritage-primary">2. Giấy tờ</legend>
-        <DocumentPicker
-          label="Giấy chứng tử (bắt buộc)"
-          files={deathCertificates}
-          onChange={setDeathCertificates}
-          disabled={busy}
-          reserved={wills.length + others.length}
-        />
-        <ErrorText>{errors.deathCertificates}</ErrorText>
-        <DocumentPicker
-          label="Di chúc (bắt buộc)"
-          files={wills}
-          onChange={setWills}
-          disabled={busy}
-          reserved={deathCertificates.length + others.length}
-        />
-        <ErrorText>{errors.wills}</ErrorText>
-        <DocumentPicker
-          label="Giấy tờ khác (nếu có)"
-          files={others}
-          onChange={setOthers}
-          disabled={busy}
-          reserved={deathCertificates.length + wills.length}
-        />
-        <ErrorText>{errors.files}</ErrorText>
-      </fieldset>
+      <HandoverDocumentFields
+        legend="2. Giấy tờ"
+        documents={documents}
+        errors={errors}
+        disabled={busy}
+        onChange={setDocuments}
+      />
 
       <fieldset className="space-y-3">
         <legend className="font-serif text-xl text-heritage-primary">

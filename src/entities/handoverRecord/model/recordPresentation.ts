@@ -8,7 +8,7 @@ import type {
 
 /** Nhãn và màu của từng bước biên bản. */
 export const recordStatusLabel: Record<RecordStatus, { label: string; tone: Tone }> = {
-  DRAFTING: { label: "Đang lập biên bản", tone: "warning" },
+  DRAFTING: { label: "Đang lập phương án chia", tone: "warning" },
   // IDENTITY_CHECK chỉ còn ở biên bản cũ; luồng mới chốt xong là SIGNING nên xử lý như SIGNING.
   IDENTITY_CHECK: { label: "Đang ký và giao từng người", tone: "warning" },
   SIGNING: { label: "Đang ký và giao từng người", tone: "warning" },
@@ -35,7 +35,7 @@ export function fileSizeText(bytes: number): string {
  * tự đi riêng (danh tính, ký, tải) nên không còn bước "chờ tất cả người nhận".
  */
 export const recordSteps = [
-  { key: "DRAFTING", title: "Lập biên bản", hint: "Ai nhận tài sản nào" },
+  { key: "DRAFTING", title: "Lập phương án chia", hint: "Ai nhận tài sản nào" },
   {
     key: "SIGNING",
     title: "Ký và giao từng người",
@@ -74,7 +74,7 @@ export function deliveryText(
   if (recipient.turnStatus === "HANDOVER_COMMITTED") {
     return { label: "Đã mở quyền tải", tone: "success" };
   }
-  if (!recipient.turnId) return { label: "Chưa chốt biên bản", tone: "neutral" };
+  if (!recipient.turnId) return { label: "Chưa chốt phương án chia", tone: "neutral" };
   // Chữ ký riêng cho người này; dữ liệu cũ chỉ có chữ ký chung của biên bản.
   const verifierAt = recipient.verifierSignedAt ?? record.verifierSignedAt;
   const executorAt = recipient.executorSignedAt ?? record.executorSignedAt;
@@ -152,7 +152,7 @@ export function signBlockedText(reason: string): string {
     case "ALREADY_SIGNED":
       return "Đã ký phần này";
     case "NOT_SIGNING_STEP":
-      return "Biên bản chưa chốt";
+      return "Phương án chia chưa chốt";
     case "RECORD_COMPLETED":
       return "Biên bản đã đủ chữ ký";
     default:
@@ -163,7 +163,7 @@ export function signBlockedText(reason: string): string {
 /** Danh tính của một người nhận đang ở đâu, nói bằng chữ dễ hiểu. */
 export function identityText(recipient: RecordRecipient): { label: string; tone: Tone } {
   if (recipient.identityConfirmedAt) return { label: "Đã xác nhận", tone: "success" };
-  if (!recipient.turnId) return { label: "Chưa chốt biên bản", tone: "neutral" };
+  if (!recipient.turnId) return { label: "Chưa chốt phương án chia", tone: "neutral" };
   if (recipient.submissionStatus === "SUBMITTED")
     return { label: "Chờ luật sư kiểm", tone: "warning" };
   if (recipient.submissionStatus === "SUPPLEMENT_REQUESTED")
@@ -181,4 +181,14 @@ export function receiptText(recipient: RecordRecipient): { label: string; tone: 
   if (recipient.turnStatus === "HANDOVER_COMMITTED")
     return { label: "Chờ người nhận ký", tone: "warning" };
   return { label: "Chưa giao", tone: "neutral" };
+}
+
+/** Câu hỏi lại trước khi luật sư từ chối yêu cầu nhận tài sản hoặc hồ sơ báo tin. */
+export const REJECT_CONFIRM_MESSAGE =
+  "Từ chối sẽ đóng yêu cầu này. Người gửi có thể gửi lại yêu cầu mới.";
+
+/** Nhãn của lý do đã ghi: đang chờ xét mà còn lý do thì đó là lý do của lần xét trước. */
+export function reviewReasonLabel(status: string): string {
+  if (status === "SUBMITTED") return "Lý do xét lần trước: ";
+  return "Lý do đã ghi: ";
 }

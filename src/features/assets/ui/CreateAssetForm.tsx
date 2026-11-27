@@ -3,15 +3,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { FileText, Lock, X } from "lucide-react";
+import { Lock } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { backendAssetService } from "../api/backendAssetService";
 import { ADD_ASSET_NAME_ID, MAX_ASSET_FILE_BYTES, validateAssetFile } from "../model/addAssetForm";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
-import "./create-asset-form.css";
+import { AssetFileDrop } from "./AssetFileDrop";
 
 const schema = z.object({
   name: z.string().regex(/\S/, "Nhập tên mục.").max(200),
@@ -20,6 +21,9 @@ const schema = z.object({
 });
 
 type Kind = "TEXT" | "FILE";
+
+/** Vòng tải chạy ít nhất 1,4 giây, xong thì giữ dấu tích 1,7 giây như mẫu gốc. */
+const FILE_HOLD = { minRunMs: 1400, holdMs: 1700 };
 
 const kinds: Array<{ value: Kind; label: string }> = [
   { value: "TEXT", label: "Ghi chú bí mật" },
@@ -37,6 +41,12 @@ export function CreateAssetForm({
   const client = useQueryClient();
   const action = usePrivateAction();
   const [kind, setKind] = useState<Kind>("TEXT");
+  // Server báo xong thì giữ dấu tích một nhịp rồi mới xóa form. Tải tệp giữ lâu hơn để thấy đủ vòng tải (tệp nhỏ
+  // gửi xong gần như tức thì).
+  const noteSuccess = useSuccessHold();
+  const fileSuccess = useSuccessHold(FILE_HOLD);
+  let success = noteSuccess;
+  if (kind === "FILE") success = fileSuccess;
   const [fileError, setFileError] = useState("");
   const [file, setFile] = useState<File | null>(null);
   // Tiến độ pha 1 (gửi byte lên mạng); pha 2 là "máy chủ mã hóa/lưu" khi pending sau khi upload xong.
@@ -99,17 +109,20 @@ export function CreateAssetForm({
             return;
           }
           setUploadPercent(null);
+          const send = async () => {
+            if (kind === "TEXT") {
+              return backendAssetService.createText(vaultId, values);
+            }
+            return backendAssetService.upload(
+              vaultId,
+              file!,
+              values.name,
+              values.description,
+              (percent) => setUploadPercent(percent),
+            );
+          };
           const saved = await action.execute(
-            () =>
-              kind === "TEXT"
-                ? backendAssetService.createText(vaultId, values)
-                : backendAssetService.upload(
-                    vaultId,
-                    file!,
-                    values.name,
-                    values.description,
-                    (percent) => setUploadPercent(percent),
-                  ),
+            () => success.hold(send),
             () => {
               void client.invalidateQueries({ queryKey: ["vault-assets", vaultId] });
               void client.invalidateQueries({ queryKey: ["owner-vault"] });
@@ -180,66 +193,24 @@ export function CreateAssetForm({
             </label>
           ) : (
             <div className="space-y-2">
-              <label className="block text-sm font-medium">
+              <p className="text-sm font-medium" aria-hidden="true">
                 Tệp tài sản
-                <Input
-                  key={fileInputKey}
-                  type="file"
-                  className="mt-2 h-auto w-full max-w-full overflow-hidden text-ellipsis rounded-xl bg-white px-3 py-2.5 text-sm font-normal"
-                  onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
-                />
-              </label>
-              {file && (
-                <div className="asset-file-chip">
-                  <FileText aria-hidden="true" className="size-5 shrink-0 text-heritage-muted" />
-                  <div className="min-w-0 flex-1">
-                    <p className="break-all text-sm font-medium text-heritage-text">{file.name}</p>
-                    <p className="text-sm text-heritage-muted">{formatStorageSize(file.size)}</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="asset-file-chip-x"
-                    aria-label={`Bỏ tệp ${file.name}`}
-                    onClick={() => {
-                      pickFile(null);
-                      setFileInputKey((value) => value + 1);
-                    }}
-                  >
-                    <X aria-hidden="true" className="size-4" />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-          {kind === "FILE" && (
-            <p className="text-sm text-heritage-muted">
-              Tệp tối đa {formatStorageSize(MAX_ASSET_FILE_BYTES)}.
-            </p>
-          )}
-          {kind === "FILE" && action.pending && (
-            <div className="space-y-1">
-              <p role="status" className="text-sm font-medium">
-                {uploadPercent !== null && uploadPercent < 100
-                  ? `Đang tải tệp lên… ${uploadPercent}%`
-                  : "Đã gửi tệp, đang mã hóa và lưu trên máy chủ…"}
               </p>
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={uploadPercent ?? 100}
-                className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
-              >
-                <div
-                  className={`h-full rounded-full bg-heritage-success transition-[width] duration-300 ease-out ${
-                    uploadPercent === null || uploadPercent >= 100 ? "animate-pulse" : ""
-                  }`}
-                  style={{
-                    width:
-                      uploadPercent === null || uploadPercent >= 100 ? "100%" : `${uploadPercent}%`,
-                  }}
-                />
-              </div>
+              <AssetFileDrop
+                file={file}
+                inputKey={fileInputKey}
+                invalid={Boolean(fileError)}
+                uploading={action.pending}
+                percent={uploadPercent}
+                done={success.done}
+                failed={Boolean(action.error)}
+                maxBytes={MAX_ASSET_FILE_BYTES}
+                onPick={pickFile}
+                onRemove={() => {
+                  pickFile(null);
+                  setFileInputKey((value) => value + 1);
+                }}
+              />
             </div>
           )}
           <p
@@ -253,9 +224,16 @@ export function CreateAssetForm({
             Nội dung được mã hóa AES-256-GCM trên máy chủ.
           </p>
           <div className="flex flex-wrap gap-3">
-            <button type="submit" className={buttonStyles.dark}>
-              {action.pending ? "Đang lưu…" : "Lưu tài sản"}
-            </button>
+            <ActionButton
+              type="submit"
+              className={buttonStyles.dark}
+              pending={action.pending}
+              done={success.done}
+              pendingLabel="Đang lưu…"
+              doneLabel="Đã lưu"
+            >
+              Lưu tài sản
+            </ActionButton>
             <button type="button" className={buttonStyles.outline} onClick={clear}>
               Hủy
             </button>

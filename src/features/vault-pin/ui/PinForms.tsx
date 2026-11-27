@@ -1,6 +1,8 @@
 import { useController, useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { Input } from "@/shared/ui/input";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { vaultPinService } from "../api/vaultPinService";
@@ -49,6 +51,8 @@ interface FormActionsProps {
   submitLabel: string;
   pendingLabel: string;
   pending: boolean;
+  /** Server đã lưu xong: nút hiện dấu tích một nhịp. */
+  done: boolean;
   onCancel?: () => void;
   cancelLabel?: string;
 }
@@ -57,6 +61,7 @@ function FormActions({
   submitLabel,
   pendingLabel,
   pending,
+  done,
   onCancel,
   cancelLabel = "Hủy",
 }: FormActionsProps) {
@@ -72,9 +77,16 @@ function FormActions({
           {cancelLabel}
         </button>
       )}
-      <button type="submit" className={buttonStyles.dark} disabled={pending}>
-        {pending ? pendingLabel : submitLabel}
-      </button>
+      <ActionButton
+        type="submit"
+        className={buttonStyles.dark}
+        pending={pending}
+        done={done}
+        pendingLabel={pendingLabel}
+        doneLabel="Đã lưu"
+      >
+        {submitLabel}
+      </ActionButton>
     </div>
   );
 }
@@ -115,6 +127,7 @@ interface SetPinFormProps {
 /** Đặt PIN lần đầu cho kho. */
 export function SetPinForm({ vaultId, onDone, onCancel, cancelLabel }: SetPinFormProps) {
   const action = usePrivateAction();
+  const success = useSuccessHold();
   const form = useForm<SetPinFormValues>({
     resolver: zodResolver(setPinFormSchema),
     mode: "onSubmit",
@@ -127,7 +140,7 @@ export function SetPinForm({ vaultId, onDone, onCancel, cancelLabel }: SetPinFor
       className="space-y-4"
       onSubmit={form.handleSubmit((values) => {
         void action.execute(
-          () => vaultPinService.set(vaultId, values),
+          () => success.hold(() => vaultPinService.set(vaultId, values)),
           (status) => onDone(values.pin, status),
         );
       })}
@@ -145,6 +158,7 @@ export function SetPinForm({ vaultId, onDone, onCancel, cancelLabel }: SetPinFor
         submitLabel="Đặt mã PIN"
         pendingLabel="Đang lưu…"
         pending={action.pending}
+        done={success.done}
         onCancel={onCancel}
         cancelLabel={cancelLabel}
       />
@@ -185,6 +199,7 @@ interface ChangePinFormProps {
 /** Đổi PIN khi còn nhớ PIN cũ. */
 export function ChangePinForm({ vaultId, onDone, onCancel }: ChangePinFormProps) {
   const action = usePrivateAction();
+  const success = useSuccessHold();
   const form = useForm<ChangePinFormValues>({
     resolver: zodResolver(changePinFormSchema),
     mode: "onSubmit",
@@ -196,7 +211,10 @@ export function ChangePinForm({ vaultId, onDone, onCancel }: ChangePinFormProps)
       noValidate
       className="space-y-4"
       onSubmit={form.handleSubmit((values) => {
-        void action.execute(() => vaultPinService.change(vaultId, values), onDone);
+        void action.execute(
+          () => success.hold(() => vaultPinService.change(vaultId, values)),
+          onDone,
+        );
       })}
     >
       <CurrentPinField form={form} />
@@ -212,6 +230,7 @@ export function ChangePinForm({ vaultId, onDone, onCancel }: ChangePinFormProps)
         submitLabel="Đổi mã PIN"
         pendingLabel="Đang lưu…"
         pending={action.pending}
+        done={success.done}
         onCancel={onCancel}
       />
     </form>
@@ -228,6 +247,7 @@ interface ForgotPinFormProps {
 /** Quên PIN: nhập mật khẩu tài khoản và PIN mới, đặt lại ngay. */
 export function ForgotPinForm({ vaultId, onDone, onCancel }: ForgotPinFormProps) {
   const action = usePrivateAction();
+  const success = useSuccessHold();
   const form = useForm<ResetPinFormValues>({
     resolver: zodResolver(resetPinFormSchema),
     mode: "onSubmit",
@@ -241,7 +261,7 @@ export function ForgotPinForm({ vaultId, onDone, onCancel }: ForgotPinFormProps)
       className="space-y-4"
       onSubmit={form.handleSubmit((values) => {
         void action.execute(
-          () => vaultPinService.reset(vaultId, values),
+          () => success.hold(() => vaultPinService.reset(vaultId, values)),
           (status) => onDone(values.newPin, status),
         );
       })}
@@ -275,6 +295,7 @@ export function ForgotPinForm({ vaultId, onDone, onCancel }: ForgotPinFormProps)
         submitLabel="Đặt lại mã PIN"
         pendingLabel="Đang lưu…"
         pending={action.pending}
+        done={success.done}
         onCancel={onCancel}
       />
     </form>

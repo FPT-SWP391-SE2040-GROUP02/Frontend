@@ -63,7 +63,8 @@ function recipientText(record: HandoverRecord, me: RecordRecipient | undefined):
       text = `Danh tính của bạn đã được xác nhận. ${reason}: luật sư và Người thực thi ký trước, rồi tới bạn.`;
     }
   }
-  if (record.status === "DRAFTING") text = "Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký.";
+  if (record.status === "DRAFTING")
+    text = "Luật sư đang sửa phương án chia. Bạn chờ biên bản mới rồi ký.";
   if (record.canSign) {
     text =
       "Bấm Xem và ký biên bản, đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản ở ô chữ ký của bạn.";
@@ -223,7 +224,7 @@ export function RecipientRecordPanel({
           </dl>
           <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
             <SignatureBox
-              caption="1. Luật sư lập biên bản"
+              caption="1. Luật sư lập phương án"
               name={record.verifierName}
               signedAt={me.verifierSignedAt ?? record.verifierSignedAt}
               pendingText="Chờ ký"
